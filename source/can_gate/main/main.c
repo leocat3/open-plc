@@ -288,7 +288,7 @@ int main()
 			usart_rx_data[0] = 0;
 		}	// if( ret_button )
 
-		delay_ms( 10 );
+//		delay_ms( 10 );
 
 	}	// while( 1 )
 }
