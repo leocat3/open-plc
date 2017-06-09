@@ -1,0 +1,74 @@
+For CAN, the extended format of the data frame is used.
+4 bytes - identifier, 8 bytes - data.
+The first byte of the CAN frame can be a maximum of 1F
+
+Bit identifier format:
+
+The extended format of the data frame is used.
+Extended CAN ID format:
+
+Protocol of CAN ( Only Extended frame format ):
+-----------------------------------------------
+
+xxxx xxxx xxxx 0000 xxxx xxxx xxxx xxxx
+---- ---- ----      |--- ---- |--- ----
+ ------+------      |---+---- |---+----
+       |            |   |     |   |
+       |            |   |     |   +--------- Expansion of command ( function code )
+       |            |   |     |              Maximum is 127
+       |            |   |     |
+       |            |   |     +------------- If 1, then answer from device
+       |            |   |                    Used to exclude "looping" and
+       |            |   |                    when processing broadcast requests
+       |            |   |
+       |            |   +------------------- Command. ( function code ) Maximum is 127
+       |            |                          1 - set up values
+       |            |                          2 - read values
+       |            |
+       |            +----------------------- If 1, then the Controller returned an error state
+       |
+       +------------------------------------ Address. Maximum is 100
+                                             Only 100 devices ( chips limit )
+
+The device always responds to packets addressed to it. This is a confirmation of receipt of the package.
+Address=0 - Broadcast distribution.
+
+Examples ( Linux candump ):
+
+can0    400200  [8] 00 00 00 00 00 00 00 00 - Request for data with device number 4
+can0    400280  [8] 07 00 00 00 00 00 00 00 - Answer device number 4
+
+can0    400100  [8] 07 00 00 00 00 00 00 00 - Transferring data to device number 4
+can0    400180  [8] 07 00 00 00 00 00 00 00 - Answer device number 4 (current status)
+
+can0    100200  [1] 00                      - Request for data with device number 1 (one byte)
+can0    100280  [8] 00 00 00 00 00 00 00 00 - Answer device number 1
+
+can0    100100  [1] FF                      - Sending data to the device with number 1 (one byte)
+can0    100180  [8] FF 00 00 00 00 00 00 00 - Answer device number 1 (current status)
+
+can0    100F00  [1] 00                      - Sending data to the device with number 1 (one byte)
+can0    108F80  [8] 00 00 00 00 00 00 00 00 - Answer device number 1 ( error, wrong command )
+
+
+Each device has a unique serial number Sn (4 bytes)
+and Id, or device type (4 bytes)
+
+
+Broadcasting commands ( CAN address = 0 ):
+------------------------------------------------------------------------------
+C1:C2
+C1 - Command ( function code )
+C2 - Command expansion ( function code 2 )
+------------------------------------------------------------------------------
+2:x - Request for data
+2:0 - To get serial number; the device will return the first 4 bytes of Sn.
+      In the next 4 bytes the device code (identifier)
+2:1 - Get CAN number; In the first 4 bytes of Sn, to whom is addressed.
+
+1:x - Setting values
+1:1 - Do not to respond for a broadcast serial number request.
+      In the first 4 bytes of Sn, to whom is addressed.
+1:2 - Set CAN number
+      In the first 4 bytes of Sn, to whom is addressed
+      5th byte is a number of CAN
