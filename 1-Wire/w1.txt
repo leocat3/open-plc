@@ -1,7 +1,7 @@
 Work with W1 firmware
 ---------------------
 
-W1 firmware CAN bus commands:
+W1 firmware commands:
 ------------------------------------------------------------------------------
 C1:C2
 C1 - Command ( function code )
