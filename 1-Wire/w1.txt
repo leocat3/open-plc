@@ -1,0 +1,151 @@
+Work with W1 firmware
+---------------------
+
+W1 firmware commands:
+------------------------------------------------------------------------------
+C1:C2
+C1 - Command ( function code )
+C2 - Command expansion ( function code 2 )
+------------------------------------------------------------------------------
+2:0 - Request for configuration
+2:N - N = 1..9
+      Get data from channel N
+
+1:N - Set value for channel N
+      N = 1..9
+      Value must be "0" or "X". X=1..0xFF. Any not is "0" value, is - "1".
+      For GPIO channels only. Set logical "0" or "1" on GPIO channel.
+      If the channel is configured as not a GPIO, then the device will return an error code.
+
+Examples:
+( use 2 stm32f100 boards; first with "CAN-Gate" firmware, second with "W1" firmware )
+Our device "W1" have a CAN number as "1"
+
+------------------------------------------------------------------------------
+Screen                                   | Description
+------------------------------------------------------------------------------
+SEND: 00100200 # 00                      | Reqwest for configuration CAN dev # 1
+RECV: 00100280 # 21 00 00 30 02 00 00 00 | Return configuration 1..9 channels: 120000032
+                                         | CH01 (PA2)   DS18B20 /1; 1-Wire Digital Thermometer
+                                         | CH02 (PA3)   iButton /2; iButton
+                                         | CH03 (PA4)   ---     /0; Not connected
+                                         | CH04 (PA5)   ---     /0; Not connected
+                                         | CH05 (PA6)   ---     /0; Not connected
+                                         | CH06 (PA7)   ---     /0; Not connected
+                                         | CH07 (PB0)   ---     /0; Not connected
+                                         | CH08 (PB1)   GPIO    /3; bidirectional GPIO
+                                         | CH09 (PA1)   iButton /2; iButton
+                                         | 
+SEND: 00100208 # 00                      | Reqwest for values CH#8
+RECV: 00100288 # 00 00 00 00 00 00 00 00 | Return value from CH#8 ( "0" ); Low level, default value
+SEND: 00100108 # 01                      | Set "1" for CH#8; Hight level
+RECV: 00100188 # 01 00 00 00 00 00 00 00 | Return value from CH#8 ( "1" )
+SEND: 00100208 # 00                      | Reqwest for values CH#8
+RECV: 00100288 # 01 00 00 00 00 00 00 00 | Return value from CH#8 ( "1" )
+                                         | Shorted CH#2 to GND, for example press button.
+SEND: 00100208 # 00                      | Reqwest for values CH#8
+RECV: 00100288 # 00 00 00 00 00 00 00 00 | Return value from CH#8 ( "0" ); button pressed
+                                         | 
+SEND: 00100201 # 00                      | Reqwest for values CH#1
+RECV: 00100281 # EA 00 00 00 00 00 00 00 | Return 2 bytes value from CH#8 ( 0x00EA = 235 ); 235 is 23.5 C
+                                         | 
+SEND: 00100209 # 00                      | Reqwest for values CH#9
+RECV: 00100289 # FF FF FF FF FF FF FF FF | Return value from CH#9; key not connected
+                                         | connect iButton key to CH#9
+SEND: 00100209 # 00                      | Reqwest for values CH#9
+RECV: 00100289 # DC 00 00 0F 07 45 96 01 | Return value from CH#9; key number
+
+==============================================================================
+
+For test of "W1" firmware, you can use any discovery board with STM32f100/STM32F103.
+Differences are taken into account of microcontroller type.
+Only CAN will be absent. Work through the USB-UART adapter. Speed 115200.
+
+Example of work:
+------------------------------------------------------------------------------
+Screen                                          | Description
+------------------------------------------------------------------------------
++++                                             |Press "Reset" button on board
+                                                |
+W1> ?                                           |Type "?"
+Unknown command                                 |
+print <cfg> for Config                          |
+                                                |
+W1> cfg                                         |Type "cfg" <Enter>
+                                                |
+(c) Open-PLC                                    |
+(open-plc.com)                                  |
+                                                |
+? - help                                        |
+                                                |
+Config> ?                                       |Type "?"
+                                                |
+?       - This page                             |
+q       - Exit from Config                      |
+sh      - Show parameters                       |
+cn <Nn> - set Nn on CAN bus (1..100)            |
+cs <Nn> - set CAN speed                         |
+          Nn = 0; Speed 500000                  |
+          Nn = 1; Speed 250000                  |
+          Nn = 2; Speed 125000                  |
+          Nn = 3; Speed 100000                  |
+          Nn = 4; Speed 50000                   |
+          Nn = 5; Speed 20000                   |
+          Nn = 6; Speed 10000                   |
+                                                |
+ct <CH> <Nn> - set CH type                      |
+          Nn = 0; Not connected                 |
+          Nn = 1; DS18B20                       |
+          Nn = 2; iButton                       |
+          Nn = 3; bidirectional GPIO            |
+                                                |
+tm <Nn>   Set timeout for iButton, Nn=0..10     |
+sd 0/1    Show Data ( for debug )               |
+                                                |
+Config> sh                                      |Type "sh" <Enter>
+? - for help                                    |
+                                                |
+Name         Value                              |Show current configuration
+-----------  ----------                         |
+Device Type  1000009                            |
+S/N          117240001                          |
+Nn on CAN    1                                  |Nn on CAN bus
+CAN Speed    250000 bps                         |CAN speed
+                                                |
+CH01 (PA2)   DS18B20                            |
+CH02 (PA3)   iButton                            |
+CH03 (PA4)   ---                                |
+CH04 (PA5)   ---                                |
+CH05 (PA6)   ---                                |
+CH06 (PA7)   ---                                |
+CH07 (PB0)   ---                                |
+CH08 (PB1)   GPIO                               |
+CH09 (PA1)   iButton                            |
+                                                |
+BTN timeout  0 sec                              |How long to remember the value of the iButton key in seconds.
+Show Data    OFF                                |Show current channels values (for debugging)
+                                                |
+Config> sd 1                                    |Type "sd 1" <Enter> (show current values)
+Config> q                                       |Type "q" <Enter>; Return to console
+                                                |
+W1> CFG  = 120000032                            |
+CH01 = EC 00 00 00 00 00 00 00 / 23.6           |
+CH02 = FF FF FF FF FF FF FF FF                  |
+CH08 = 00 00 00 00 00 00 00 00 / 0              |
+CH09 = FF FF FF FF FF FF FF FF                  |
+                                                |
+CFG  = 120000032                                |
+CH01 = EC 00 00 00 00 00 00 00 / 23.6           |
+CH02 = FF FF FF FF FF FF FF FF                  |
+CH08 = 00 00 00 00 00 00 00 00 / 0              |
+CH09 = FF FF FF FF FF FF FF FF                  |
+                                                |
+CFG  = 120000032                                |
+CH01 = EE 00 00 00 00 00 00 00 / 23.8           |
+CH02 = FF FF FF FF FF FF FF FF                  |
+CH08 = 00 00 00 00 00 00 00 00 / 0              |
+CH09 = DC 00 00 0F 07 45 96 01                  |Connect Ibutton key
+...                                             |
+
+Get "W1" firmware:
+https://github.com/leocat3/open-plc/tree/master/1-Wire
