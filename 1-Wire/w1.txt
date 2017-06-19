@@ -24,7 +24,7 @@ Our device "W1" have a CAN number as "1"
 ------------------------------------------------------------------------------
 Screen                                   | Description
 ------------------------------------------------------------------------------
-SEND: 00100200 # 00                      | Reqwest for configuration CAN dev # 1
+SEND: 00100200 # 00                      | Request for configuration CAN dev # 1
 RECV: 00100280 # 21 00 00 30 02 00 00 00 | Return configuration 1..9 channels: 120000032
                                          | CH01 (PA2)   DS18B20 /1; 1-Wire Digital Thermometer
                                          | CH02 (PA3)   iButton /2; iButton
@@ -36,23 +36,23 @@ RECV: 00100280 # 21 00 00 30 02 00 00 00 | Return configuration 1..9 channels: 1
                                          | CH08 (PB1)   GPIO    /3; bidirectional GPIO
                                          | CH09 (PA1)   iButton /2; iButton
                                          | 
-SEND: 00100208 # 00                      | Reqwest for values CH#8
+SEND: 00100208 # 00                      | Request for values CH#8
 RECV: 00100288 # 00 00 00 00 00 00 00 00 | Return value from CH#8 ( "0" ); Low level, default value
 SEND: 00100108 # 01                      | Set "1" for CH#8; Hight level
 RECV: 00100188 # 01 00 00 00 00 00 00 00 | Return value from CH#8 ( "1" )
-SEND: 00100208 # 00                      | Reqwest for values CH#8
+SEND: 00100208 # 00                      | Request for values CH#8
 RECV: 00100288 # 01 00 00 00 00 00 00 00 | Return value from CH#8 ( "1" )
                                          | Shorted CH#2 to GND, for example press button.
-SEND: 00100208 # 00                      | Reqwest for values CH#8
+SEND: 00100208 # 00                      | Request for values CH#8
 RECV: 00100288 # 00 00 00 00 00 00 00 00 | Return value from CH#8 ( "0" ); button pressed
                                          | 
-SEND: 00100201 # 00                      | Reqwest for values CH#1
+SEND: 00100201 # 00                      | Request for values CH#1
 RECV: 00100281 # EA 00 00 00 00 00 00 00 | Return 2 bytes value from CH#8 ( 0x00EA = 235 ); 235 is 23.5 C
                                          | 
-SEND: 00100209 # 00                      | Reqwest for values CH#9
+SEND: 00100209 # 00                      | Request for values CH#9
 RECV: 00100289 # FF FF FF FF FF FF FF FF | Return value from CH#9; key not connected
                                          | connect iButton key to CH#9
-SEND: 00100209 # 00                      | Reqwest for values CH#9
+SEND: 00100209 # 00                      | Request for values CH#9
 RECV: 00100289 # DC 00 00 0F 07 45 96 01 | Return value from CH#9; key number
 
 ==============================================================================
